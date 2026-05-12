@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GenZTrauma Analyser{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --white: #ffffff;
+            --bg: #fdf2f8;
+            --primary: #db2777;
+            --primary-hover: #be185d;
+            --text: #111827;
+            --muted: #6b7280;
+            --border: rgba(219, 39, 119, 0.1);
+            --sidebar-w: 260px;
+            --sidebar-collapsed-w: 80px;
+            --transition: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ── Dark Theme Variables ── */
+        body.dark-theme {
+            --bg: #0f172a;
+            --white: #1e293b;
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+            --sidebar-header-bg: #1e293b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: var(--sidebar-w);
+            background: var(--white);
+            border-right: 1px solid var(--border);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s var(--transition), background 0.3s ease;
+            z-index: 1000;
+        }
+
+        .sidebar.collapsed {
+            width: var(--sidebar-collapsed-w);
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border);
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .logo-icon {
+            font-size: 24px;
+            min-width: 32px;
+            height: 32px;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+        }
+
+        .logo-text {
+            font-weight: 800;
+            font-size: 18px;
+            color: var(--primary);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: var(--radius);
+            text-decoration: none;
+            color: var(--muted);
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: var(--bg);
+            color: var(--primary);
+        }
+
+        .nav-link.active {
+            background: rgba(219, 39, 119, 0.08);
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .sidebar-toggle {
+            padding: 16px;
+            border-top: 1px solid var(--border);
+            cursor: pointer;
+            text-align: center;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ── Main content ── */
+        .main {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            transition: margin-left 0.3s var(--transition);
+        }
+
+        body.sidebar-collapsed .main {
+            margin-left: var(--sidebar-collapsed-w);
+        }
+
+        .topbar {
+            height: 64px;
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            position: sticky;
+            top: 0;
+            z-index: 500;
+        }
+
+        .topbar h1 {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .content {
+            padding: 32px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
+                width: 260px;
+            }
+
+            .main {
+                margin-left: 0 !important;
+            }
+
+            .hamburger {
+                display: block;
+            }
+        }
+
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            font-size: 24px;
+            color: var(--primary);
+        }
+
+        /* Responsive cards */
+        .card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+
+<body class="">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-icon">🎗️</div>
+            <div class="logo-text">GenZTrauma</div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">Dashboard</span>
+            </a>
+            <a href="/questions_page" class="nav-link {% if active_page == 'checkins' %}active{% endif %}">
+                <span class="nav-icon">✏️</span>
+                <span class="nav-label">Check-ins</span>
+            </a>
+            <a href="/analytics_page" class="nav-link {% if active_page == 'analytics' %}active{% endif %}">
+                <span class="nav-icon">📈</span>
+                <span class="nav-label">Analytics</span>
+            </a>
+            <a href="/safe_space" class="nav-link {% if active_page == 'safe_space' %}active{% endif %}">
+                <span class="nav-icon">🧘</span>
+                <span class="nav-label">Safe Space</span>
+            </a>
+            <a href="/profile_page" class="nav-link {% if active_page == 'profile' %}active{% endif %}">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">Profile</span>
+            </a>
+            <a href="/settings_page" class="nav-link {% if active_page == 'settings' %}active{% endif %}">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-label">Settings</span>
+            </a>
+        </nav>
+        <div class="sidebar-toggle" onclick="toggleSidebar()">
+            <span id="toggle-icon">◀</span>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+        <header class="topbar">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <button class="hamburger" onclick="toggleMobileSidebar()">☰</button>
+                <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+            </div>
+            <div class="user-info">
+                <span id="top-username">User</span>
+                <div style="width:32px; height:32px; border-radius:50%; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center; font-size:14px;"
+                    id="user-initial">U</div>
+            </div>
+        </header>
+
+        <section class="content">
+            {% block content %}{% endblock %}
+        </section>
+    </main>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const body = document.body;
+            const icon = document.getElementById('toggle-icon');
+
+            sidebar.classList.toggle('collapsed');
+            body.classList.toggle('sidebar-collapsed');
+
+            if (sidebar.classList.contains('collapsed')) {
+                icon.textContent = '▶';
+                localStorage.setItem('sidebarCollapsed', 'true');
+            } else {
+                icon.textContent = '◀';
+                localStorage.setItem('sidebarCollapsed', 'false');
+            }
+        }
+
+        function updateThemeFromStorage() {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-theme');
+            } else {
+                document.body.classList.remove('dark-theme');
+            }
+        }
+        updateThemeFromStorage();
+
+        function toggleMobileSidebar() {
+            document.getElementById('sidebar').classList.toggle('mobile-open');
+        }
+
+        // Init state from local storage
+        if (localStorage.getItem('sidebarCollapsed') === 'true') {
+            document.getElementById('sidebar').classList.add('collapsed');
+            document.body.classList.add('sidebar-collapsed');
+            document.getElementById('toggle-icon').textContent = '▶';
+        }
+
+        // Set User Info
+        document.getElementById('top-username').textContent = localStorage.getItem('username') || 'User';
+        document.getElementById('user-initial').textContent = (localStorage.getItem('username') || 'U')[0].toUpperCase();
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

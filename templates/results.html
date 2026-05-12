@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis Results — GenZTrauma Analyser{% endblock %}
+{% block page_title %}Check-in Results{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 700px; margin: 0 auto;">
+    <div style="text-align:center; margin-bottom:32px;">
+        <h2 id="result-title" style="font-size:24px; font-weight:800; margin-bottom:8px;">Analyzing Results...</h2>
+        <p style="color:var(--muted); font-size:14px;">Assessment based on your latest input and words.</p>
+    </div>
+
+    <div id="result-content">
+        <!-- Result Cards Injected Here -->
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:32px;">
+        <a href="/dashboard" class="card"
+            style="text-align:center; padding:16px; background:var(--primary); color:white; text-decoration:none; font-weight:700; border-radius:12px; border:none; box-shadow:0 4px 12px rgba(219,39,119,0.2);">Return
+            to Dashboard</a>
+        <a href="/analytics_page" class="card"
+            style="text-align:center; padding:16px; background:var(--white); color:var(--text); text-decoration:none; font-weight:700; border-radius:12px; border:1px solid var(--border);">View
+            Detailed Analytics</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const severity = localStorage.getItem("severity");
+    const headline = localStorage.getItem("headline");
+    const message = localStorage.getItem("message");
+    const tip = localStorage.getItem("tip");
+    const activity = localStorage.getItem("activity");
+    const emotion = localStorage.getItem("emotion");
+    const confidence = localStorage.getItem("confidence");
+
+    const SEVERITY_INFO = {
+        Stable: { emoji: "🌿", color: "#10b981", bg: "rgba(16,185,129,0.1)" },
+        Mild: { emoji: "🌤", color: "#ec4899", bg: "rgba(236,72,153,0.1)" },
+        Moderate: { emoji: "🌥", color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
+        High: { emoji: "⚡", color: "#ef4444", bg: "rgba(239,68,68,0.1)" },
+        Severe: { emoji: "🆘", color: "#b91c1c", bg: "rgba(185,28,28,0.1)" }
+    };
+
+    function renderResults() {
+        if (!severity) {
+            document.getElementById('result-content').innerHTML = `<div class="card" style="text-align:center; padding:40px;">No results found. Please check in first.</div>`;
+            return;
+        }
+
+        const info = SEVERITY_INFO[severity] || { emoji: "💭", color: "var(--muted)", bg: "var(--bg)" };
+        document.getElementById('result-title').textContent = "Your Analysis is Ready ✨";
+
+        document.getElementById('result-content').innerHTML = `
+            <div class="card" style="text-align:center; border:2px solid ${info.color}; background:${info.bg};">
+                 <span style="font-size:32px;">${info.emoji}</span>
+                 <h3 style="font-size:24px; font-weight:800; color:${info.color}; margin-top:12px;">${severity}</h3>
+                 <p style="font-size:12px; font-weight:700; text-transform:uppercase; margin-top:4px;">Current Emotional State</p>
+            </div>
+
+            <div class="card" style="margin-top:20px;">
+                <p style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">The Signal Detection</p>
+                <h4 style="font-size:17px; font-weight:700; margin-bottom:8px; color:var(--primary);">${headline}</h4>
+                <p style="font-size:14px; color:var(--text); line-height:1.6;">${message}</p>
+            </div>
+
+            <div class="card" style="margin-top:20px; display:flex; align-items:center; gap:20px;">
+                <div style="width:64px; height:64px; border-radius:50%; border:3px solid var(--primary); display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800;">
+                    ${Math.round(confidence * 100)}%
+                </div>
+                <div>
+                    <h5 style="font-size:14px; font-weight:700;">Detection Confidence</h5>
+                    <p style="font-size:13px; color:var(--muted);">Primary emotion detected: <strong style="text-transform:capitalize;">${emotion}</strong></p>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top:20px; background:rgba(219,39,119,0.05); border-left:4px solid var(--primary);">
+                <p style="font-size:11px; font-weight:800; color:var(--primary); text-transform:uppercase; margin-bottom:8px;">Daily Recommendation</p>
+                <p style="font-size:14px; line-height:1.6; color:var(--text); font-weight:500; margin-bottom:12px;">${tip}</p>
+                <div style="padding:12px; background:white; border-radius:10px; border:1px dashed var(--primary); font-size:13px; font-weight:700; color:var(--primary); display:flex; align-items:center; gap:8px;">
+                    <span>🎯</span> ${activity}
+                </div>
+                <div style="margin-top:16px;">
+                    <a href="/safe_space" style="display:inline-block; padding:8px 16px; background:var(--primary); color:white; text-decoration:none; border-radius:8px; font-size:13px; font-weight:700;">Try Grounding Exercises →</a>
+                </div>
+            </div>
+        `;
+    }
+
+    renderResults();
+</script>
+{% endblock %}

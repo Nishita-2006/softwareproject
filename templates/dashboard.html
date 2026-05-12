@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — GenZTrauma Analyser{% endblock %}
+{% block page_title %}Dashboard Overview{% endblock %}
+
+{% block content %}
+<!-- Greeting -->
+<div class="greeting">
+  <h2 id="greeting-text">Loading...</h2>
+  <p id="greeting-sub">Your mental health at a glance today.</p>
+</div>
+
+<!-- CTA Banner -->
+<div class="card" id="cta-banner"
+  style="display:none; background: linear-gradient(135deg,rgba(219,39,119,0.1),rgba(219,39,119,0.05)); border-left: 4px solid var(--primary);">
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:20px;">
+    <div>
+      <h3 style="font-size:16px; margin-bottom:4px;">Ready for your check-in? 🌱</h3>
+      <p style="font-size:13px; color:var(--muted);">It only takes 2 minutes to track your emotional patterns today.</p>
+    </div>
+    <a href="/questions_page" class="card"
+      style="padding:10px 20px; background:var(--primary); color:white; text-decoration:none; font-weight:700; border-radius:10px; font-size:13px; border:none;">Start
+      Now →</a>
+  </div>
+</div>
+
+<!-- Quick Stats -->
+<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:20px; margin-top:24px;">
+  <div class="card">
+    <p style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:1px;">
+      Programme Progress</p>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:12px;">
+      <h3 style="font-size:28px; font-weight:800;" id="s-day">—</h3>
+      <div style="text-align:right;">
+        <p id="s-logged" style="font-size:14px; font-weight:700; color:var(--primary);">— days</p>
+        <p style="font-size:10px; color:var(--muted);">logged of 21</p>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <p style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:1px;">Latest
+      Score</p>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:12px;">
+      <h3 style="font-size:28px; font-weight:800;" id="s-score">—</h3>
+      <div id="score-label" style="padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700;">No Data</div>
+    </div>
+  </div>
+  <div class="card">
+    <p style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:1px;">
+      Improvement</p>
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:12px;">
+      <h3 style="font-size:28px; font-weight:800;" id="s-imp">—</h3>
+      <p style="font-size:12px; color:var(--muted);">since Day 1</p>
+    </div>
+  </div>
+</div>
+
+<!-- Main Row -->
+<div style="display:grid; grid-template-columns: 1fr 340px; gap:24px; margin-top:24px;">
+  <!-- Daily Insight & Tracker Column -->
+  <div style="display:flex; flex-direction:column; gap:24px;">
+    <!-- Daily Insight Card -->
+    <div class="card" id="daily-insight-card" style="display:none; background:rgba(219,39,119,0.02); border-left:4px solid var(--primary);">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+            <p style="font-size:11px; font-weight:800; color:var(--primary); text-transform:uppercase;">Latest Insight</p>
+            <div id="insight-severity" style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px;">Stable</div>
+        </div>
+        <h4 id="insight-headline" style="font-size:16px; font-weight:700; margin-bottom:8px;">—</h4>
+        <p id="insight-tip" style="font-size:13px; color:var(--text); line-height:1.5; margin-bottom:12px;">—</p>
+        <div id="insight-activity" style="padding:10px; background:white; border-radius:10px; border:1px dashed var(--primary); font-size:12px; font-weight:700; color:var(--primary); display:flex; align-items:center; gap:8px;">
+            <span>🎯</span> <span id="insight-activity-text">—</span>
+        </div>
+        <div style="margin-top:12px;">
+            <a href="/safe_space" style="font-size:12px; color:var(--primary); font-weight:700; text-decoration:none;">Go to Safe Space →</a>
+        </div>
+    </div>
+
+    <!-- 21-Day Tracker -->
+    <div class="card" style="margin-bottom:0;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+            <h3 style="font-size:15px; font-weight:700;">21-Day Tracker</h3>
+            <span style="font-size:11px; color:var(--muted);" id="tracker-sub">0 / 21 completed</span>
+        </div>
+        <div id="day-strip" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+    </div>
+  </div>
+
+  <!-- Check-in Status Ring -->
+  <div class="card" style="text-align:center;">
+    <h3 style="font-size:15px; font-weight:700; margin-bottom:20px; text-align:left;">Overall Completion</h3>
+    <div style="position:relative; width:120px; height:120px; margin:0 auto 16px;">
+      <svg width="120" height="120" viewBox="0 0 120 120" style="transform: rotate(-90deg);">
+        <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(219,39,119,0.05)" stroke-width="8" />
+        <circle id="ring-circle" cx="60" cy="60" r="50" fill="none" stroke="var(--primary)" stroke-width="8"
+          stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314"
+          style="transition: stroke-dashoffset 1s ease;" />
+      </svg>
+      <div
+        style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+        <span id="ring-pct" style="font-size:20px; font-weight:800;">—%</span>
+      </div>
+    </div>
+    <p id="checkin-status-text" style="font-size:12px; color:var(--muted);">Loading journey status...</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const user_id = localStorage.getItem('user_id');
+  if (!user_id) window.location.href = '/login';
+
+  async function initDashboard() {
+    const username = localStorage.getItem('username') || 'User';
+    const now = new Date();
+    const hr = now.getHours();
+    const greet = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
+    document.getElementById('greeting-text').textContent = `${greet}, ${username.split(' ')[0]} ✨`;
+
+    try {
+      // Checkin Status
+      const statusRes = await fetch(`/checkin_status/${user_id}`);
+      const status = await statusRes.json();
+      if (!status.checked_in_today) {
+        document.getElementById('cta-banner').style.display = 'block';
+      }
+
+      // Progress Stats
+      const progRes = await fetch(`/progress/${user_id}`);
+      const prog = await progRes.json();
+
+      document.getElementById('s-day').textContent = 'Day ' + status.current_day;
+      document.getElementById('s-logged').textContent = prog.total_days;
+      document.getElementById('s-imp').textContent = (prog.improvement_pct > 0 ? '+' : '') + prog.improvement_pct + '%';
+
+      if (prog.scores && prog.scores.length > 0) {
+        const latest = prog.scores[prog.scores.length - 1];
+        document.getElementById('s-score').textContent = latest + '/10';
+        const label = document.getElementById('score-label');
+        label.textContent = getScoreLabel(latest);
+        label.style.background = getScoreColor(latest, true);
+        label.style.color = getScoreColor(latest, false);
+      }
+
+      // Ring Animation
+      const pct = Math.round((prog.total_days / 21) * 100);
+      const circ = 314;
+      const offset = circ - (circ * pct / 100);
+      document.getElementById('ring-circle').style.strokeDashoffset = offset;
+      document.getElementById('ring-pct').textContent = pct + '%';
+      document.getElementById('checkin-status-text').textContent = status.checked_in_today ? "You're all caught up for today!" : "Don't forget to check in today.";
+
+      // Day Strip
+      buildDayStrip(prog.days, status.current_day);
+
+      // Load Daily Insight (Tip) from latest report
+      if (prog.days && prog.days.length > 0) {
+          const latestDay = prog.days[prog.days.length - 1];
+          const reportRes = await fetch(`/daily_report/${user_id}/${latestDay}`);
+          const report = await reportRes.json();
+          if (report.responses && report.responses.length > 0) {
+              const first = report.responses[0];
+              const sev = first.nlp_severity || getScoreLabel(report.avg_score);
+              
+              // We need to match severity to tips. Since tips are in app.py FEEDBACK_MESSAGES,
+              // and they are saved in localStorage during /submit, we can try to get them from there
+              // or just fetch them if we had an endpoint. 
+              // BUT wait, /analyze_text returns them. Let's just use what's in localStorage if it exists,
+              // or just show the severity and headline.
+              
+              document.getElementById('daily-insight-card').style.display = 'block';
+              document.getElementById('insight-severity').textContent = sev;
+              document.getElementById('insight-severity').style.background = getScoreColor(report.avg_score, true);
+              document.getElementById('insight-severity').style.color = getScoreColor(report.avg_score, false);
+              
+              // Use localStorage values if they match the latest checkin
+              if (localStorage.getItem('severity') === sev) {
+                  document.getElementById('insight-headline').textContent = localStorage.getItem('headline');
+                  document.getElementById('insight-tip').textContent = localStorage.getItem('tip');
+                  document.getElementById('insight-activity-text').textContent = localStorage.getItem('activity') || "No activity suggested yet.";
+              } else {
+                  document.getElementById('insight-headline').textContent = `Insight for Day ${latestDay}`;
+                  document.getElementById('insight-tip').textContent = "View your detailed report in Analytics for personalized tips.";
+                  document.getElementById('insight-activity').style.display = 'none';
+              }
+          }
+      }
+
+    } catch (e) {
+      console.error("Dashboard init failed", e);
+    }
+  }
+
+  function getScoreLabel(s) {
+    if (s >= 7.5) return 'Stable';
+    if (s >= 6) return 'Mild';
+    if (s >= 4) return 'Moderate';
+    if (s >= 2.5) return 'High';
+    return 'Severe';
+  }
+
+  function getScoreColor(s, bg) {
+    if (s >= 7.5) return bg ? 'rgba(16,185,129,0.1)' : '#10b981';
+    if (s >= 6) return bg ? 'rgba(236,72,153,0.1)' : '#ec4899';
+    if (s >= 4) return bg ? 'rgba(245,158,11,0.1)' : '#f59e0b';
+    if (s >= 2.5) return bg ? 'rgba(239,68,68,0.1)' : '#ef4444';
+    return bg ? 'rgba(185,28,28,0.1)' : '#b91c1c';
+  }
+
+  function buildDayStrip(doneDays, currentDay) {
+    const container = document.getElementById('day-strip');
+    container.innerHTML = '';
+    for (let i = 1; i <= 21; i++) {
+      const pip = document.createElement('div');
+      pip.style.width = '32px';
+      pip.style.height = '32px';
+      pip.style.borderRadius = '8px';
+      pip.style.display = 'flex';
+      pip.style.alignItems = 'center';
+      pip.style.justifyContent = 'center';
+      pip.style.fontSize = '10px';
+      pip.style.fontWeight = '700';
+      pip.textContent = i;
+
+      if (doneDays.includes(i)) {
+        pip.style.background = 'rgba(16,185,129,0.1)';
+        pip.style.color = '#10b981';
+        pip.style.border = '1px solid rgba(16,185,129,0.2)';
+      } else if (i === currentDay) {
+        pip.style.background = 'var(--primary)';
+        pip.style.color = 'white';
+        pip.style.boxShadow = '0 4px 12px rgba(219,39,119,0.3)';
+      } else {
+        pip.style.background = 'var(--white)';
+        pip.style.color = '#d1d5db';
+        pip.style.border = '1px solid var(--border)';
+      }
+      container.appendChild(pip);
+    }
+  }
+
+  initDashboard();
+</script>
+{% endblock %}

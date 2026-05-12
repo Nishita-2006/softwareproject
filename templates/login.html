@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — GenZTrauma Analyser</title>
+
+    <style>
+        :root {
+            --white: #ffffff;
+            --bg: #fdf2f8;
+            --primary: #db2777;
+            --primary-hover: #be185d;
+            --text: #111827;
+            --muted: #6b7280;
+            --border: rgba(219, 39, 119, 0.15);
+            --border2: rgba(219, 39, 119, 0.25);
+            --glass: rgba(255, 255, 255, 0.8);
+            --glass2: rgba(255, 255, 255, 0.5);
+            --input-bg: rgba(219, 39, 119, 0.05);
+            --input-border: rgba(219, 39, 119, 0.1);
+            --error: #ef4444;
+            --success: #10b981;
+            --radius: 14px;
+
+            --blue-400: var(--primary);
+            --blue-500: var(--primary-hover);
+        }
+
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 15% 10%, rgba(219, 39, 119, 0.1) 0%, transparent 55%),
+                radial-gradient(ellipse 60% 50% at 85% 85%, rgba(219, 39, 119, 0.05) 0%, transparent 55%),
+                linear-gradient(160deg, #ffffff 0%, #fef2f2 60%, #fdf2f8 100%);
+            z-index: -1;
+        }
+
+        /* ── Card ── */
+        .card {
+            width: 100%;
+            max-width: 420px;
+            background: var(--glass2);
+            border: 1px solid var(--border2);
+            border-radius: 24px;
+            padding: 44px 40px;
+            backdrop-filter: blur(24px);
+            animation: fadeUp .5s ease;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-logo {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .card-logo span {
+            color: var(--blue-400);
+        }
+
+        .card-sub {
+            text-align: center;
+            font-size: 14px;
+            color: var(--muted);
+            margin-bottom: 36px;
+        }
+
+        /* ── Form elements ── */
+        .field {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--muted);
+            margin-bottom: 7px;
+        }
+
+        .input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="email"] {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 14px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+
+        input:focus {
+            border-color: var(--blue-400);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        input.error-field {
+            border-color: var(--error);
+        }
+
+        .pw-toggle {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+        }
+
+        .pw-toggle:hover {
+            color: var(--text);
+        }
+
+        .field-error {
+            font-size: 12px;
+            color: var(--error);
+            margin-top: 5px;
+            display: none;
+        }
+
+        /* ── Forgot link ── */
+        .forgot-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: -10px;
+            margin-bottom: 22px;
+        }
+
+        .forgot-link {
+            font-size: 13px;
+            color: var(--blue-400);
+            cursor: pointer;
+            text-decoration: none;
+            transition: opacity .2s;
+        }
+
+        .forgot-link:hover {
+            opacity: .75;
+        }
+
+        /* ── Primary button ── */
+        .btn-primary {
+            width: 100%;
+            padding: 13px;
+            background: var(--blue-400);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: background .2s, transform .15s, box-shadow .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            background: var(--blue-500);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(219, 39, 119, .25);
+        }
+
+        .btn-primary:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 24px 0;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border2);
+        }
+
+        .register-link {
+            text-align: center;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .register-link a {
+            color: var(--blue-400);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* ── Alert box ── */
+        .alert {
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 13px;
+            margin-top: 16px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert.error {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.25);
+            color: var(--error);
+        }
+
+        .alert.success {
+            background: rgba(52, 211, 153, 0.1);
+            border: 1px solid rgba(52, 211, 153, 0.25);
+            color: var(--success);
+        }
+
+        .alert.show {
+            display: flex;
+        }
+
+        /* ── Spinner ── */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ── MODAL ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .25s;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 400px;
+            background: var(--white);
+            border: 1px solid var(--border2);
+            border-radius: 22px;
+            padding: 40px 36px;
+            transform: translateY(16px);
+            transition: transform .25s;
+        }
+
+        .modal-overlay.open .modal {
+            transform: translateY(0);
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .modal-sub {
+            font-size: 14px;
+            color: var(--muted);
+            margin-bottom: 28px;
+            line-height: 1.55;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 22px;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: var(--text);
+        }
+
+        .modal {
+            position: relative;
+        }
+
+        /* ── Step indicators ── */
+        .steps {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 28px;
+        }
+
+        .step-dot {
+            height: 4px;
+            border-radius: 2px;
+            background: var(--border2);
+            flex: 1;
+            transition: background .3s;
+        }
+
+        .step-dot.active {
+            background: var(--blue-400);
+        }
+
+        .step-panel {
+            display: none;
+        }
+
+        .step-panel.active {
+            display: block;
+        }
+
+        .btn-secondary {
+            width: 100%;
+            padding: 12px;
+            background: var(--glass2);
+            color: var(--text);
+            border: 1px solid var(--border2);
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: background .2s;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.09);
+        }
+
+        /* ── Password strength ── */
+        .strength-bar {
+            display: flex;
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .strength-seg {
+            flex: 1;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.12);
+            transition: background .3s;
+        }
+
+        .strength-label {
+            font-size: 12px;
+            margin-top: 5px;
+            color: var(--muted);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SIGN IN CARD -->
+    <div class="card">
+        <div class="card-logo">🎗️ GenZTrauma Analyser</div>
+        <p class="card-sub">Continue your emotional journey</p>
+
+        <div class="field">
+            <label for="identity">Username or Email</label>
+            <input type="text" id="identity" placeholder="Enter your username or email" autocomplete="username">
+            <div class="field-error" id="err-identity">This field is required</div>
+        </div>
+
+        <div class="field">
+            <label for="password">Password</label>
+            <div class="input-wrap">
+                <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password">
+                <button class="pw-toggle" type="button" onclick="togglePw('password','eye-login')"
+                    title="Show password">
+                    <span id="eye-login">👁️</span>
+                </button>
+            </div>
+            <div class="field-error" id="err-password">Password is required</div>
+        </div>
+
+        <div class="forgot-row">
+            <span class="forgot-link" onclick="openForgotModal()">Forgot password?</span>
+        </div>
+
+        <button class="btn-primary" id="loginBtn" onclick="login()">
+            <span class="spinner" id="loginSpinner"></span>
+            <span id="loginBtnText">Sign In</span>
+        </button>
+
+        <div class="alert error" id="loginAlert"></div>
+        <div class="alert success" id="loginSuccess"></div>
+
+        <div class="divider">or</div>
+
+        <div class="register-link">
+            Don't have an account? <a href="/register_page">Create one →</a>
+        </div>
+    </div>
+
+    <!-- FORGOT PASSWORD MODAL -->
+    <div class="modal-overlay" id="forgotModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeForgotModal()">✕</button>
+
+            <div class="steps">
+                <div class="step-dot active" id="dot1"></div>
+                <div class="step-dot" id="dot2"></div>
+                <div class="step-dot" id="dot3"></div>
+                <div class="step-dot" id="dot4"></div>
+            </div>
+
+            <!-- Step 1: Identity -->
+            <div class="step-panel active" id="step1">
+                <div class="modal-title">Reset Password</div>
+                <p class="modal-sub">Enter your username or email to begin recovery.</p>
+                <div class="field">
+                    <label>Username or Email</label>
+                    <input type="text" id="reset-identity" placeholder="Your identity">
+                </div>
+                <div class="alert error" id="step1-alert"></div>
+                <button class="btn-primary" id="step1Btn" onclick="requestOTP()">
+                    <span class="spinner" id="s1-spin"></span>
+                    <span id="s1-text">Send OTP</span>
+                </button>
+            </div>
+
+            <!-- Step 2: OTP Verification -->
+            <div class="step-panel" id="step2">
+                <div class="modal-title">Verify Email</div>
+                <p class="modal-sub">We've sent a 6-digit code to your registered email.</p>
+                <div class="field">
+                    <label>6-Digit OTP</label>
+                    <input type="text" id="otp-code" maxlength="6"
+                        style="text-align:center; letter-spacing:8px; font-size:24px; font-weight:800;"
+                        placeholder="000000">
+                </div>
+                <div class="alert error" id="step2-alert"></div>
+                <button class="btn-primary" id="step2Btn" onclick="verifyOTP()">
+                    <span class="spinner" id="s2-spin"></span>
+                    <span id="s2-text">Verify OTP</span>
+                </button>
+                <button class="btn-secondary" onclick="goStep(1)">← Back</button>
+            </div>
+
+            <!-- Step 3: Security question -->
+            <div class="step-panel" id="step3">
+                <div class="modal-title">Security Check</div>
+                <p class="modal-sub">Almost there! Answer your security question.</p>
+                <div class="field">
+                    <label id="sec-question-label">What is the name of your first pet?</label>
+                    <input type="text" id="sec-answer" placeholder="Your answer">
+                </div>
+                <div class="alert error" id="step3-alert"></div>
+                <button class="btn-primary" id="step3Btn" onclick="verifyAnswer()">
+                    <span class="spinner" id="s3-spin"></span>
+                    <span id="s3-text">Verify Answer</span>
+                </button>
+                <button class="btn-secondary" onclick="goStep(2)">← Back</button>
+            </div>
+
+            <!-- Step 4: New password -->
+            <div class="step-panel" id="step4">
+                <div class="modal-title">Set New Password</div>
+                <p class="modal-sub">Choose a strong new password.</p>
+
+                <div class="field">
+                    <label>New Password</label>
+                    <div class="input-wrap">
+                        <input type="password" id="new-password" placeholder="New password"
+                            oninput="checkStrength(this.value)">
+                        <button class="pw-toggle" type="button" onclick="togglePw('new-password','eye-np')"><span
+                                id="eye-np">👁️</span></button>
+                    </div>
+                    <div class="strength-bar">
+                        <div class="strength-seg" id="s1"></div>
+                        <div class="strength-seg" id="s2"></div>
+                        <div class="strength-seg" id="s3"></div>
+                        <div class="strength-seg" id="s4"></div>
+                    </div>
+                    <div class="strength-label" id="strength-label">Enter a password</div>
+                </div>
+
+                <div class="field">
+                    <label>Confirm Password</label>
+                    <div class="input-wrap">
+                        <input type="password" id="confirm-password" placeholder="Re-enter password">
+                        <button class="pw-toggle" type="button" onclick="togglePw('confirm-password','eye-cp')"><span
+                                id="eye-cp">👁️</span></button>
+                    </div>
+                </div>
+
+                <div class="alert error" id="step4-alert"></div>
+                <div class="alert success" id="step4-success"></div>
+
+                <button class="btn-primary" id="step4Btn" onclick="resetPassword()">
+                    <span class="spinner" id="s4-spin"></span>
+                    <span id="s4-text">Reset Password</span>
+                </button>
+                <button class="btn-secondary" onclick="goStep(3)">← Back</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        /* ─── Helpers ─────────────────────────────────────── */
+        function togglePw(inputId, eyeId) {
+            const inp = document.getElementById(inputId);
+            const eye = document.getElementById(eyeId);
+            inp.type = (inp.type === 'password') ? 'text' : 'password';
+            eye.textContent = (inp.type === 'password') ? '👁️' : '🙈';
+        }
+
+        function showAlert(id, msg, type = 'error') {
+            const el = document.getElementById(id);
+            el.textContent = msg;
+            el.className = 'alert ' + type + ' show';
+        }
+
+        function hideAlert(id) {
+            document.getElementById(id).className = 'alert';
+        }
+
+        function setLoading(btnId, spinnerId, textId, loading, btnText = '') {
+            const btn = document.getElementById(btnId);
+            const sp = document.getElementById(spinnerId);
+            const tx = document.getElementById(textId);
+            btn.disabled = loading;
+            sp.style.display = loading ? 'block' : 'none';
+            if (!loading && btnText) tx.textContent = btnText;
+        }
+
+        /* ─── Login ───────────────────────────────────────── */
+        function validate() {
+            let ok = true;
+            ['identity', 'password'].forEach(id => {
+                const val = document.getElementById(id).value.trim();
+                const err = document.getElementById('err-' + id);
+                if (!val) {
+                    document.getElementById(id).classList.add('error-field');
+                    if (err) err.style.display = 'block';
+                    ok = false;
+                } else {
+                    document.getElementById(id).classList.remove('error-field');
+                    if (err) err.style.display = 'none';
+                }
+            });
+            return ok;
+        }
+
+        async function login() {
+            hideAlert('loginAlert');
+            hideAlert('loginSuccess');
+            if (!validate()) return;
+
+            setLoading('loginBtn', 'loginSpinner', 'loginBtnText', true);
+
+            const identity = document.getElementById('identity').value.trim();
+            const password = document.getElementById('password').value;
+
+            try {
+                const res = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identity, password })
+                });
+                const data = await res.json();
+
+                if (data.user_id) {
+                    localStorage.setItem('user_id', data.user_id);
+                    if (data.username) localStorage.setItem('username', data.username);
+                    showAlert('loginSuccess', 'Signed in successfully! Redirecting...', 'success');
+                    setTimeout(() => { window.location.href = '/dashboard'; }, 800);
+                } else {
+                    showAlert('loginAlert', data.error || 'Login failed. Please try again.');
+                }
+            } catch {
+                showAlert('loginAlert', 'Network error. Please try again.');
+            } finally {
+                setLoading('loginBtn', 'loginSpinner', 'loginBtnText', false, 'Sign In');
+            }
+        }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+
+        /* ─── Password strength meter ─────────────────────── */
+        function checkStrength(pw) {
+            const segs = ['s1', 's2', 's3', 's4'];
+            const label = document.getElementById('strength-label');
+            const colors = ['#f87171', '#fb923c', '#facc15', '#34d399'];
+            const labels = ['Too weak', 'Fair', 'Good', 'Strong'];
+
+            let score = 0;
+            if (pw.length >= 8) score++;
+            if (/[A-Z]/.test(pw)) score++;
+            if (/[0-9]/.test(pw)) score++;
+            if (/[^A-Za-z0-9]/.test(pw)) score++;
+
+            segs.forEach((id, i) => {
+                document.getElementById(id).style.background =
+                    i < score ? colors[score - 1] : 'rgba(255,255,255,0.12)';
+            });
+
+            label.textContent = pw.length === 0 ? 'Enter a password' : labels[score - 1] || 'Too weak';
+            label.style.color = pw.length === 0 ? 'var(--muted)' : colors[score - 1];
+        }
+
+        /* ─── Forgot Password Modal ───────────────────────── */
+        let currentStep = 1;
+        let verifiedUsername = '';
+
+        function openForgotModal() {
+            goStep(1);
+            document.getElementById('forgotModal').classList.add('open');
+            document.getElementById('reset-identity').value = '';
+            document.getElementById('otp-code').value = '';
+            document.getElementById('sec-answer').value = '';
+            document.getElementById('new-password').value = '';
+            document.getElementById('confirm-password').value = '';
+            checkStrength('');
+        }
+
+        function closeForgotModal() {
+            document.getElementById('forgotModal').classList.remove('open');
+        }
+
+        document.getElementById('forgotModal').addEventListener('click', function (e) {
+            if (e.target === this) closeForgotModal();
+        });
+
+        function goStep(n) {
+            [1, 2, 3, 4].forEach(i => {
+                const panel = document.getElementById('step' + i);
+                const dot = document.getElementById('dot' + i);
+                if (panel) panel.classList.toggle('active', i === n);
+                if (dot) dot.classList.toggle('active', i <= n);
+            });
+            ['step1-alert', 'step2-alert', 'step3-alert', 'step4-alert', 'step4-success'].forEach(id => {
+                const alert = document.getElementById(id);
+                if (alert) hideAlert(id);
+            });
+            currentStep = n;
+        }
+
+        /* Step 1 — request OTP */
+        async function requestOTP() {
+            const identity = document.getElementById('reset-identity').value.trim();
+            if (!identity) { showAlert('step1-alert', 'Please enter your username or email.'); return; }
+
+            setLoading('step1Btn', 's1-spin', 's1-text', true);
+            try {
+                const res = await fetch('/request_otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identity })
+                });
+                const data = await res.json();
+                if (data.message) {
+                    verifiedUsername = data.username;
+                    goStep(2);
+                } else {
+                    showAlert('step1-alert', data.error || 'Identity not found.');
+                }
+            } catch {
+                showAlert('step1-alert', 'Network error. Please try again.');
+            } finally {
+                setLoading('step1Btn', 's1-spin', 's1-text', false, 'Send OTP');
+            }
+        }
+
+        /* Step 2 — verify OTP */
+        async function verifyOTP() {
+            const code = document.getElementById('otp-code').value.trim();
+            if (!code || code.length !== 6) { showAlert('step2-alert', 'Enter the 6-digit OTP.'); return; }
+
+            setLoading('step2Btn', 's2-spin', 's2-text', true);
+            try {
+                const res = await fetch('/verify_otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: verifiedUsername, code })
+                });
+                const data = await res.json();
+                if (data.verified) {
+                    // Fetch security question dynamically
+                    const qRes = await fetch('/check_user', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: verifiedUsername })
+                    });
+                    const qData = await qRes.json();
+                    if (qData.question) {
+                        document.getElementById('sec-question-label').textContent = qData.question;
+                        goStep(3);
+                    } else {
+                        // Admin bypass if no question exists
+                        goStep(4);
+                    }
+                } else {
+                    showAlert('step2-alert', data.error || 'Invalid code.');
+                }
+            } catch {
+                showAlert('step2-alert', 'Network error.');
+            } finally {
+                setLoading('step2Btn', 's2-spin', 's2-text', false, 'Verify OTP');
+            }
+        }
+
+        /* Step 3 — verify security answer */
+        async function verifyAnswer() {
+            const answer = document.getElementById('sec-answer').value.trim();
+            if (!answer) { showAlert('step3-alert', 'Please enter your answer.'); return; }
+
+            setLoading('step3Btn', 's3-spin', 's3-text', true);
+            try {
+                const res = await fetch('/verify_security_answer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: verifiedUsername, answer })
+                });
+                const data = await res.json();
+                if (data.verified) {
+                    goStep(4);
+                } else {
+                    showAlert('step3-alert', 'Incorrect answer.');
+                }
+            } catch {
+                showAlert('step3-alert', 'Network error.');
+            } finally {
+                setLoading('step3Btn', 's3-spin', 's3-text', false, 'Verify Answer');
+            }
+        }
+
+        /* Step 4 — reset password */
+        async function resetPassword() {
+            const np = document.getElementById('new-password').value;
+            const cp = document.getElementById('confirm-password').value;
+
+            if (np.length < 8) { showAlert('step4-alert', 'Minimum 8 characters.'); return; }
+            if (np !== cp) { showAlert('step4-alert', 'Passwords mismatch.'); return; }
+
+            setLoading('step4Btn', 's4-spin', 's4-text', true);
+            try {
+                const res = await fetch('/reset_password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: verifiedUsername, new_password: np })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showAlert('step4-success', 'Password updated!', 'success');
+                    setTimeout(() => { closeForgotModal(); location.reload(); }, 2000);
+                } else {
+                    showAlert('step4-alert', data.error);
+                }
+            } catch {
+                showAlert('step4-alert', 'Network error.');
+            } finally {
+                setLoading('step4Btn', 's4-spin', 's4-text', false, 'Reset Password');
+            }
+        }
+
+        /* Password rules (mirrored in backend) */
+        function validatePassword(pw) {
+            const errs = [];
+            if (pw.length < 8) errs.push('Password must be at least 8 characters.');
+            if (!/[A-Z]/.test(pw)) errs.push('Password must contain at least one uppercase letter.');
+            if (!/[0-9]/.test(pw)) errs.push('Password must contain at least one number.');
+            if (!/[^A-Za-z0-9]/.test(pw)) errs.push('Password must contain at least one special character (!@#$%...).');
+            return errs;
+        }
+    </script>
+
+</body>
+
+</html>

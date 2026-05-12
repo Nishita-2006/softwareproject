@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Settings — GenZTrauma Analyser{% endblock %}
+{% block page_title %}Settings{% endblock %}
+
+{% block content %}
+<div style="max-width:800px; margin:0 auto;">
+    <div class="card">
+        <h3 style="font-size:16px; font-weight:700; margin-bottom:24px;">Preferences</h3>
+
+        <div
+            style="display:flex; align-items:center; justify-content:space-between; padding-bottom:20px; border-bottom:1px solid var(--border); margin-bottom:20px;">
+            <div>
+                <p style="font-size:14px; font-weight:600;">Theme Mode</p>
+                <p style="font-size:12px; color:var(--muted);">Switch between light and dark modes.</p>
+            </div>
+            <select id="theme-select"
+                style="padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:var(--bg); font-weight:600; cursor:pointer;"
+                onchange="updateTheme()">
+                <option value="light">Light & Pink</option>
+                <option value="dark">Dark & Slate</option>
+            </select>
+        </div>
+
+        <div
+            style="display:flex; align-items:center; justify-content:space-between; padding-bottom:20px; border-bottom:1px solid var(--border); margin-bottom:20px;">
+            <div>
+                <p style="font-size:14px; font-weight:600;">Check-in Reminders</p>
+                <p style="font-size:12px; color:var(--muted);">Receive daily notifications to log your state.</p>
+            </div>
+            <div id="reminder-toggle" onclick="toggleReminders()"
+                style="width:40px; height:20px; background:#d1d5db; border-radius:20px; position:relative; cursor:pointer; transition:all 0.2s;">
+                <div id="reminder-knob"
+                    style="width:16px; height:16px; background:white; border-radius:50%; position:absolute; top:2px; left:2px; transition:all 0.2s;">
+                </div>
+            </div>
+        </div>
+
+        </div>
+    </div>
+    </div>
+
+    <div class="card" style="margin-top:24px;">
+        <h3 style="font-size:16px; font-weight:700; margin-bottom:24px; color:#ef4444;">Danger Zone</h3>
+        <p style="font-size:13px; color:var(--muted); margin-bottom:20px;">Once you delete your account, there is no
+            going back. Please be certain.</p>
+        <button
+            style="padding:12px 24px; background:#fee2e2; color:#ef4444; border:none; border-radius:10px; font-weight:700; cursor:pointer;">Delete
+            My Account</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function updateTheme() {
+        const val = document.getElementById('theme-select').value;
+        localStorage.setItem('theme', val);
+        if (val === 'dark') {
+            document.body.classList.add('dark-theme');
+        } else {
+            document.body.classList.remove('dark-theme');
+        }
+    }
+
+    function toggleReminders() {
+        const toggle = document.getElementById('reminder-toggle');
+        const knob = document.getElementById('reminder-knob');
+        const isActive = toggle.dataset.active === 'true';
+
+        if (isActive) {
+            toggle.style.background = '#d1d5db';
+            knob.style.left = '2px';
+            toggle.dataset.active = 'false';
+            localStorage.setItem('reminders', 'false');
+        } else {
+            toggle.style.background = 'var(--primary)';
+            knob.style.left = '22px';
+            toggle.dataset.active = 'true';
+            localStorage.setItem('reminders', 'true');
+        }
+    }
+
+    // Init page state
+    document.getElementById('theme-select').value = localStorage.getItem('theme') || 'light';
+    if (localStorage.getItem('reminders') === 'true') {
+        const toggle = document.getElementById('reminder-toggle');
+        const knob = document.getElementById('reminder-knob');
+        toggle.style.background = 'var(--primary)';
+        knob.style.left = '22px';
+        toggle.dataset.active = 'true';
+    }
+</script>
+{% endblock %}

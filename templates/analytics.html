@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics — GenZTrauma Analyser{% endblock %}
+{% block page_title %}Analytics & Reports{% endblock %}
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div style="display:grid; grid-template-columns: 1fr 340px; gap:24px;">
+    <!-- Main Chart -->
+    <div class="card">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+            <div>
+                <h3 style="font-size:15px; font-weight:700;">Emotional Score Over Time</h3>
+                <p style="font-size:12px; color:var(--muted);">Daily progress on a 1-10 scale</p>
+            </div>
+            <div id="chart-badge"
+                style="padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700; background:var(--bg); color:var(--muted);">
+                No Data</div>
+        </div>
+        <div style="height:320px; position:relative;">
+            <div id="chart-empty"
+                style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; color:var(--muted);">
+                <span style="font-size:32px; opacity:0.3;">📊</span>
+                <p>Complete a few check-ins to see your trends.</p>
+            </div>
+            <canvas id="mainChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Category Breakdown -->
+    <div class="card">
+        <h3 style="font-size:15px; font-weight:700; margin-bottom:20px;">Category Breakdown</h3>
+        <div id="cat-body" style="display:flex; flex-direction:column; gap:16px;">
+            <p style="font-size:13px; color:var(--muted); text-align:center; padding:40px 0;">Track check-ins to see
+                breakdown.</p>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-top:24px;">
+    <h3 style="font-size:15px; font-weight:700; margin-bottom:20px;">Weekly Summary</h3>
+    <div id="weekly-body" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px;">
+        <p style="font-size:13px; color:var(--muted); text-align:center; padding:20px 0; grid-column: 1/-1;">Not enough
+            data for weekly summary yet.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const user_id = localStorage.getItem('user_id');
+
+    async function initAnalytics() {
+        try {
+            const progRes = await fetch(`/progress/${user_id}`);
+            const prog = await progRes.json();
+
+            if (prog.scores && prog.scores.length > 0) {
+                document.getElementById('chart-empty').style.display = 'none';
+                renderChart(prog.days, prog.scores);
+
+                const latest = prog.scores[prog.scores.length - 1];
+                const badge = document.getElementById('chart-badge');
+                badge.textContent = getScoreLabel(latest);
+                badge.style.background = getScoreColor(latest, true);
+                badge.style.color = getScoreColor(latest, false);
+            }
+
+            // Load Report for Category Breakdown (use latest day recorded)
+            if (prog.days && prog.days.length > 0) {
+                const latestDay = prog.days[prog.days.length - 1];
+                loadCategoryBreakdown(latestDay);
+            }
+
+            loadWeeklySummary();
+
+        } catch (e) { console.error(e); }
+    }
+
+    function renderChart(days, scores) {
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: days.map(d => 'Day ' + d),
+                datasets: [{
+                    label: 'Score',
+                    data: scores,
+                    borderColor: '#db2777',
+                    backgroundColor: 'rgba(219, 39, 119, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#db2777',
+                    pointBorderWidth: 2,
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { min: 1, max: 10, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.03)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    async function loadCategoryBreakdown(day) {
+        const res = await fetch(`/compare/${user_id}`);
+        const data = await res.json();
+        if (data.categories) {
+            const container = document.getElementById('cat-body');
+            container.innerHTML = '';
+            for (const cat in data.categories) {
+                const item = data.categories[cat];
+                const row = document.createElement('div');
+                row.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                        <span style="font-size:12px; font-weight:600; color:var(--muted); text-transform:capitalize;">${cat}</span>
+                        <span style="font-size:12px; font-weight:700;">${item.latest_score}/10</span>
+                    </div>
+                    <div style="height:6px; background:var(--bg); border-radius:3px; overflow:hidden;">
+                        <div style="height:100%; width:${item.latest_score * 10}%; background:var(--primary); transition:width 1s ease;"></div>
+                    </div>
+                `;
+                container.appendChild(row);
+            }
+        }
+    }
+
+    async function loadWeeklySummary() {
+        const res = await fetch(`/weekly_summary/${user_id}`);
+        const data = await res.json();
+        if (data.count > 0) {
+            const container = document.getElementById('weekly-body');
+            container.innerHTML = `
+                <div class="card" style="background:var(--bg); border:none;">
+                    <p style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase;">Weekly Average</p>
+                    <h3 style="font-size:24px; font-weight:800; margin-top:8px;">${data.avg}</h3>
+                </div>
+                <div class="card" style="background:var(--bg); border:none;">
+                    <p style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase;">Best Day</p>
+                    <h3 style="font-size:24px; font-weight:800; margin-top:8px; color:var(--s-stable);">Day ${data.best_day}</h3>
+                    <p style="font-size:11px; margin-top:4px;">Score: ${data.best_score}</p>
+                </div>
+                <div class="card" style="background:var(--bg); border:none;">
+                    <p style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase;">Insights</p>
+                    <p style="font-size:12px; margin-top:8px; line-height:1.4;">${data.avg >= 7 ? 'You are showing strong emotional stability.' : 'Continue consistent check-ins for better insights.'}</p>
+                </div>
+            `;
+        }
+    }
+
+    function getScoreLabel(s) {
+        if (s >= 7.5) return 'Stable';
+        if (s >= 6) return 'Mild';
+        if (s >= 4) return 'Moderate';
+        if (s >= 2.5) return 'High';
+        return 'Severe';
+    }
+
+    function getScoreColor(s, bg) {
+        if (s >= 7.5) return bg ? 'rgba(16,185,129,0.1)' : '#10b981';
+        if (s >= 6) return bg ? 'rgba(236,72,153,0.1)' : '#ec4899';
+        if (s >= 4) return bg ? 'rgba(245,158,11,0.1)' : '#f59e0b';
+        if (s >= 2.5) return bg ? 'rgba(239,68,68,0.1)' : '#ef4444';
+        return bg ? 'rgba(185,28,28,0.1)' : '#b91c1c';
+    }
+
+    initAnalytics();
+</script>
+{% endblock %}

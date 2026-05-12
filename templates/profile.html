@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile — GenZTrauma Analyser{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div style="max-width:800px; margin:0 auto;">
+    <div class="card" style="text-align:center; padding:48px 24px;">
+        <div style="width:100px; height:100px; border-radius:50%; background:var(--bg); color:var(--primary); font-size:40px; font-weight:800; display:flex; align-items:center; justify-content:center; margin:0 auto 24px; border:2px solid var(--primary);"
+            id="profile-avatar">U</div>
+        <h2 id="profile-name" style="font-size:24px; font-weight:800; margin-bottom:4px;">User Name</h2>
+        <p id="profile-email" style="font-size:13px; color:var(--primary); margin-bottom:12px; font-weight:600;">
+            user@example.com</p>
+        <p style="font-size:14px; color:var(--muted);">Programme Member since <span id="member-since">—</span></p>
+
+        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; margin-top:40px;">
+            <div style="background:var(--bg); padding:20px; border-radius:12px;">
+                <p
+                    style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:8px;">
+                    Days Logged</p>
+                <h3 id="p-days" style="font-size:24px; font-weight:800;">—</h3>
+            </div>
+            <div style="background:var(--bg); padding:20px; border-radius:12px;">
+                <p
+                    style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:8px;">
+                    Current Day</p>
+                <h3 id="p-cur" style="font-size:24px; font-weight:800;">—</h3>
+            </div>
+            <div style="background:var(--bg); padding:20px; border-radius:12px;">
+                <p
+                    style="font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:8px;">
+                    Progress</p>
+                <h3 id="p-pct" style="font-size:24px; font-weight:800;">—%</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top:24px;">
+        <h3 style="font-size:16px; font-weight:700; margin-bottom:20px;">Account Actions</h3>
+        <button onclick="logout()"
+            style="width:100%; padding:14px; border:1px solid #ef4444; background:transparent; color:#ef4444; border-radius:10px; font-weight:700; cursor:pointer; transition:all 0.2s;">Log
+            Out of Account</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function initProfile() {
+        const user_id = localStorage.getItem('user_id');
+        try {
+            const res = await fetch(`/profile/${user_id}`);
+            const data = await res.json();
+
+            document.getElementById('profile-name').textContent = data.username;
+            document.getElementById('profile-email').textContent = data.email || 'No email set';
+            document.getElementById('profile-avatar').textContent = data.username[0].toUpperCase();
+            document.getElementById('p-days').textContent = data.days_logged;
+            document.getElementById('p-cur').textContent = data.latest_day || 1;
+            document.getElementById('p-pct').textContent = data.programme_pct + '%';
+
+            // Mocking member since as actual DB doesn't track joined date in schema seen
+            document.getElementById('member-since').textContent = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+        } catch (e) { console.error(e); }
+    }
+
+    function logout() {
+        localStorage.clear();
+        window.location.href = '/login';
+    }
+
+    initProfile();
+</script>
+{% endblock %}

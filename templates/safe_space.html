@@ -1,0 +1,428 @@
+{% extends "base.html" %}
+
+{% block title %}Safe Space — GenZTrauma Analyser{% endblock %}
+{% block page_title %}Safe Space{% endblock %}
+
+{% block head %}
+<style>
+    .safe-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 24px;
+    }
+
+    /* ── Breathing Tool ── */
+    .breathing-box {
+        text-align: center;
+        padding: 40px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .circle-wrap {
+        width: 250px;
+        height: 250px;
+        margin: 40px auto;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .breath-circle {
+        width: 100px;
+        height: 100px;
+        background: var(--primary);
+        border-radius: 50%;
+        opacity: 0.2;
+        transition: all 4s linear;
+        box-shadow: 0 0 40px var(--primary);
+    }
+
+    .breath-circle.inhale {
+        width: 240px;
+        height: 240px;
+        opacity: 0.6;
+    }
+
+    .breath-circle.exhale {
+        width: 100px;
+        height: 100px;
+        opacity: 0.2;
+    }
+
+    .breath-text {
+        position: absolute;
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--primary);
+        pointer-events: none;
+    }
+
+    .timer-bar {
+        height: 4px;
+        background: var(--primary);
+        width: 0%;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        transition: width 4s linear;
+    }
+
+    /* ── Grounding Tool ── */
+    .grounding-box {
+        padding: 30px;
+    }
+
+    .step-item {
+        margin-bottom: 24px;
+        padding: 16px;
+        border-radius: 12px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        opacity: 0.4;
+        transition: all 0.3s;
+    }
+
+    .step-item.active {
+        opacity: 1;
+        transform: scale(1.02);
+        border-color: var(--primary);
+        box-shadow: 0 4px 15px rgba(219, 39, 119, 0.1);
+    }
+
+    .step-num {
+        width: 40px;
+        height: 40px;
+        background: var(--primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 18px;
+    }
+
+    .step-content h4 {
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+
+    .step-content p {
+        font-size: 12px;
+        color: var(--muted);
+    }
+
+    .btn-action {
+        width: 100%;
+        padding: 14px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        margin-top: 10px;
+    }
+
+    .btn-action:hover {
+        opacity: 0.9;
+    }
+
+    .voice-toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 10px;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="safe-container">
+
+    <!-- Box Breathing -->
+    <div class="card breathing-box">
+        <h3 style="font-size: 18px; margin-bottom: 8px;">Box Breathing</h3>
+        <p style="font-size: 13px; color: var(--muted);">Calm your nervous system in 4 simple steps.</p>
+
+        <div class="circle-wrap">
+            <div class="breath-circle" id="circle"></div>
+            <div class="breath-text" id="breath-status">Ready?</div>
+        </div>
+
+        <button class="btn-action" id="startBreath" onclick="toggleBreathing()">Start Session</button>
+        
+        <label class="voice-toggle">
+            <input type="checkbox" id="breath-voice" checked> Enable Voice Guidance
+        </label>
+        
+        <div class="timer-bar" id="t-bar"></div>
+    </div>
+
+    <!-- 5-4-3-2-1 Grounding -->
+    <div class="card grounding-box">
+        <h3 style="font-size: 18px; margin-bottom: 8px;">5-4-3-2-1 Technique</h3>
+        <p style="font-size: 13px; color: var(--muted); margin-bottom: 24px;">Ground yourself by focusing on your senses.</p>
+
+        <div id="grounding-steps">
+            <div class="step-item" id="step-5">
+                <div class="step-num">5</div>
+                <div class="step-content">
+                    <h4>Things you can SEE</h4>
+                    <p>Focus on 5 objects in the room. Observe their color and shape.</p>
+                </div>
+            </div>
+            <div class="step-item" id="step-4">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                    <h4>Things you can FEEL</h4>
+                    <p>The texture of your clothes, the floor under your feet, or the air.</p>
+                </div>
+            </div>
+            <div class="step-item" id="step-3">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                    <h4>Things you can HEAR</h4>
+                    <p>Listen for distant sounds, birds, traffic, or your own breath.</p>
+                </div>
+            </div>
+            <div class="step-item" id="step-2">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <h4>Things you can SMELL</h4>
+                    <p>Try to notice subtle scents in the air around you.</p>
+                </div>
+            </div>
+            <div class="step-item" id="step-1">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <h4>Thing you can TASTE</h4>
+                    <p>Focus on the taste in your mouth or the feeling of your tongue.</p>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-action" id="startGround" onclick="startGrounding()">Begin Grounding</button>
+        <div class="voice-toggle">
+            <input type="checkbox" id="ground-voice" checked> Enable Voice Guidance
+        </div>
+    </div>
+
+    <!-- Ambient Soundscape -->
+    <div class="card" style="padding:30px;">
+        <h3 style="font-size: 18px; margin-bottom: 8px;">Ambient Soundscape 🎧</h3>
+        <p style="font-size: 13px; color: var(--muted); margin-bottom: 24px;">Block out the world and find your focus.</p>
+
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:12px;">
+            <button class="card sound-btn" onclick="toggleSound('rain', 'https://cdn.pixabay.com/audio/2022/03/10/audio_c97698064d.mp3')" style="cursor:pointer; padding:16px; display:flex; flex-direction:column; align-items:center; gap:8px;">
+                <span style="font-size:24px;">🌧️</span>
+                <span style="font-size:12px; font-weight:700;">Rainy Window</span>
+            </button>
+            <button class="card sound-btn" onclick="toggleSound('forest', 'https://cdn.pixabay.com/audio/2021/08/04/audio_3497d0966a.mp3')" style="cursor:pointer; padding:16px; display:flex; flex-direction:column; align-items:center; gap:8px;">
+                <span style="font-size:24px;">🌳</span>
+                <span style="font-size:12px; font-weight:700;">Forest Birds</span>
+            </button>
+            <button class="card sound-btn" onclick="toggleSound('fire', 'https://cdn.pixabay.com/audio/2022/03/10/audio_5178550186.mp3')" style="cursor:pointer; padding:16px; display:flex; flex-direction:column; align-items:center; gap:8px;">
+                <span style="font-size:24px;">🔥</span>
+                <span style="font-size:12px; font-weight:700;">Campfire</span>
+            </button>
+        </div>
+
+        <div id="audio-status" style="margin-top:20px; font-size:12px; color:var(--primary); text-align:center; font-weight:700; height:15px;"></div>
+        
+        <div style="margin-top:16px; display:flex; align-items:center; gap:10px;">
+            <span style="font-size:12px;">🔈</span>
+            <input type="range" id="volume-control" min="0" max="1" step="0.1" value="0.5" style="flex:1; accent-color:var(--primary);">
+            <span style="font-size:12px;">🔊</span>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    /* ── Helpers ── */
+    function speak(text, enabledId) {
+        if (!document.getElementById(enabledId).checked) return;
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        // Try to find a pleasant female voice
+        const voices = window.speechSynthesis.getVoices();
+        const femaleVoice = voices.find(v => 
+            v.name.toLowerCase().includes('female') || 
+            v.name.toLowerCase().includes('google uk english female') ||
+            v.name.toLowerCase().includes('samantha') ||
+            v.name.toLowerCase().includes('victoria') ||
+            v.name.toLowerCase().includes('zira')
+        );
+        
+        if (femaleVoice) utterance.voice = femaleVoice;
+        utterance.rate = 0.95;
+        utterance.pitch = 1.05;
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function vibrate(ms) {
+        if ("vibrate" in navigator) {
+            navigator.vibrate(ms);
+        }
+    }
+
+    /* ── Box Breathing ── */
+    let breathing = false;
+    let breathTimer;
+    const states = [
+        { text: "Inhale...", class: "inhale", voice: "Inhale for 4 seconds" },
+        { text: "Hold...", class: "inhale", voice: "Hold for 4 seconds" },
+        { text: "Exhale...", class: "exhale", voice: "Exhale for 4 seconds" },
+        { text: "Hold...", class: "exhale", voice: "Hold for 4 seconds" }
+    ];
+    let currentState = 0;
+
+    function toggleBreathing() {
+        breathing = !breathing;
+        const btn = document.getElementById('startBreath');
+        const circle = document.getElementById('circle');
+        const status = document.getElementById('breath-status');
+        const tbar = document.getElementById('t-bar');
+
+        if (breathing) {
+            btn.textContent = "Stop Session";
+            runBreathCycle();
+        } else {
+            btn.textContent = "Start Session";
+            clearTimeout(breathTimer);
+            circle.className = "breath-circle";
+            status.textContent = "Ready?";
+            tbar.style.width = "0%";
+            currentState = 0;
+            window.speechSynthesis.cancel();
+        }
+    }
+
+    function runBreathCycle() {
+        if (!breathing) return;
+        
+        const circle = document.getElementById('circle');
+        const status = document.getElementById('breath-status');
+        const tbar = document.getElementById('t-bar');
+        
+        const state = states[currentState];
+        status.textContent = state.text;
+        circle.className = "breath-circle " + state.class;
+        
+        // Timer bar
+        tbar.style.transition = "none";
+        tbar.style.width = "0%";
+        setTimeout(() => {
+            tbar.style.transition = "width 4s linear";
+            tbar.style.width = "100%";
+        }, 50);
+
+        speak(state.voice, 'breath-voice');
+        vibrate(200);
+
+        currentState = (currentState + 1) % states.length;
+        breathTimer = setTimeout(runBreathCycle, 4000);
+    }
+
+    /* ── Grounding ── */
+    let grounding = false;
+    const groundingSteps = [
+        { id: 'step-5', text: "Identify 5 things you can see around you.", voice: "Start by looking around. Name 5 things you can see." },
+        { id: 'step-4', text: "Notice 4 things you can feel.", voice: "Good. Now, notice 4 things you can feel, like the texture of your chair." },
+        { id: 'step-3', text: "Listen for 3 things you can hear.", voice: "Excellent. Listen carefully for 3 distinct sounds." },
+        { id: 'step-2', text: "Can you smell 2 things?", voice: "Almost there. Try to detect 2 different scents." },
+        { id: 'step-1', text: "Finally, 1 thing you can taste.", voice: "Lastly, focus on 1 thing you can taste." }
+    ];
+    let currentGStep = 0;
+
+    async function startGrounding() {
+        if (grounding) return;
+        grounding = true;
+        document.getElementById('startGround').disabled = true;
+        document.getElementById('startGround').textContent = "In Progress...";
+
+        for (let i = 0; i < groundingSteps.length; i++) {
+            const step = groundingSteps[i];
+            
+            // Deactivate all
+            document.querySelectorAll('.step-item').forEach(el => el.classList.remove('active'));
+            
+            // Activate current
+            const el = document.getElementById(step.id);
+            el.classList.add('active');
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            speak(step.voice, 'ground-voice');
+            vibrate(100);
+
+            // Wait for user to focus (simulated delay or manual next)
+            await new Promise(r => setTimeout(r, 8000));
+        }
+
+        speak("You've completed the grounding exercise. How do you feel?", 'ground-voice');
+        document.getElementById('startGround').disabled = false;
+        document.getElementById('startGround').textContent = "Start Again";
+        grounding = false;
+        setTimeout(() => {
+            document.querySelectorAll('.step-item').forEach(el => el.classList.remove('active'));
+        }, 5000);
+    }
+
+    /* ── Soundscape ── */
+    let currentAudio = null;
+    let currentSoundId = null;
+
+    function toggleSound(id, url) {
+        const status = document.getElementById('audio-status');
+        const buttons = document.querySelectorAll('.sound-btn');
+        const clickedBtn = event.currentTarget;
+
+        if (currentAudio && currentSoundId === id) {
+            currentAudio.pause();
+            currentAudio = null;
+            currentSoundId = null;
+            status.textContent = "";
+            buttons.forEach(btn => btn.style.borderColor = "var(--border)");
+            return;
+        }
+
+        if (currentAudio) currentAudio.pause();
+
+        status.textContent = "Loading " + id.toUpperCase() + "...";
+        status.style.color = "var(--primary)";
+
+        currentAudio = new Audio();
+        currentAudio.src = url;
+        currentAudio.loop = true;
+        currentAudio.volume = document.getElementById('volume-control').value;
+        
+        currentAudio.play().then(() => {
+            currentSoundId = id;
+            status.textContent = "Playing " + id.toUpperCase() + " ✨";
+            buttons.forEach(btn => btn.style.borderColor = "var(--border)");
+            clickedBtn.style.borderColor = "var(--primary)";
+        }).catch(err => {
+            console.error("Playback failed", err);
+            status.textContent = "Unable to play. Try again or check network.";
+            status.style.color = "var(--error)";
+            currentAudio = null;
+        });
+    }
+
+    document.getElementById('volume-control').addEventListener('input', (e) => {
+        if (currentAudio) currentAudio.volume = e.target.value;
+    });
+</script>
+{% endblock %}

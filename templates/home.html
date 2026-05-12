@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GenZTrauma Analyser — Understand Your Patterns</title>
+
+    <style>
+        :root {
+            --white: #ffffff;
+            --bg: #fdf2f8;
+            --primary: #db2777;
+            --primary-hover: #be185d;
+            --text: #111827;
+            --muted: #6b7280;
+            --border: rgba(219, 39, 119, 0.15);
+            --border2: rgba(219, 39, 119, 0.25);
+            --glass: rgba(255, 255, 255, 0.8);
+            --glass2: rgba(255, 255, 255, 0.5);
+            --input-bg: rgba(219, 39, 119, 0.05);
+            --input-border: rgba(219, 39, 119, 0.1);
+            --error: #ef4444;
+            --success: #10b981;
+            --radius: 14px;
+
+            /* Mapping back to old names for consistency if needed, or updating usage below */
+            --blue-400: var(--primary);
+            --blue-500: var(--primary-hover);
+        }
+
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        /* ── Animated gradient mesh ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 15% 10%, rgba(219, 39, 119, 0.1) 0%, transparent 55%),
+                radial-gradient(ellipse 60% 50% at 85% 85%, rgba(219, 39, 119, 0.05) 0%, transparent 55%),
+                linear-gradient(160deg, #ffffff 0%, #fef2f2 60%, #fdf2f8 100%);
+            z-index: -1;
+        }
+
+        /* ── NAV ── */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 48px;
+            height: 68px;
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border2);
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .nav-logo span {
+            color: var(--blue-400);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .nav-links a {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--muted);
+            text-decoration: none;
+            transition: color .2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+        }
+
+        .nav-cta {
+            padding: 9px 22px;
+            background: var(--blue-400);
+            color: white !important;
+            border-radius: 10px;
+            font-weight: 600 !important;
+            transition: background .2s, transform .15s !important;
+        }
+
+        .nav-cta:hover {
+            background: var(--blue-500) !important;
+            transform: translateY(-1px);
+        }
+
+        /* ── HERO ── */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 120px 24px 80px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border-radius: 100px;
+            background: rgba(59, 130, 246, 0.12);
+            border: 1px solid rgba(59, 130, 246, 0.30);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--blue-400);
+            letter-spacing: .6px;
+            text-transform: uppercase;
+            margin-bottom: 32px;
+            animation: fadeDown .7s ease;
+        }
+
+        .hero-title {
+            font-size: clamp(36px, 6vw, 72px);
+            font-weight: 700;
+            line-height: 1.08;
+            letter-spacing: -1.5px;
+            margin-bottom: 22px;
+            animation: fadeDown .8s ease .1s both;
+        }
+
+        .hero-title em {
+            font-style: normal;
+            background: linear-gradient(90deg, var(--blue-400), #80f0f4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-sub {
+            max-width: 520px;
+            font-size: 17px;
+            color: var(--muted);
+            line-height: 1.65;
+            margin-bottom: 44px;
+            animation: fadeDown .85s ease .2s both;
+        }
+
+        .hero-btns {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            justify-content: center;
+            animation: fadeDown .9s ease .3s both;
+        }
+
+        .btn-primary {
+            padding: 14px 32px;
+            background: var(--blue-400);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s, transform .15s, box-shadow .2s;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary:hover {
+            background: var(--blue-500);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.30);
+        }
+
+        .btn-ghost {
+            padding: 14px 32px;
+            background: var(--glass2);
+            color: var(--text);
+            border: 1px solid var(--border2);
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background .2s, transform .15s;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.09);
+            transform: translateY(-2px);
+        }
+
+        /* Hero gradient orb */
+        .hero-orb {
+            width: 380px;
+            height: 380px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            50% {
+                transform: translate(-50%, -50%) scale(1.08);
+            }
+        }
+
+        /* ── STATS STRIP ── */
+        .stats-strip {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            flex-wrap: wrap;
+            padding: 60px 24px;
+            border-top: 1px solid var(--border2);
+            border-bottom: 1px solid var(--border2);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-num {
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--blue-400);
+        }
+
+        .stat-lbl {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        /* ── FEATURES SECTION ── */
+        .section {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 100px 24px;
+        }
+
+        .section-label {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--blue-400);
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: clamp(26px, 4vw, 42px);
+            font-weight: 700;
+            letter-spacing: -0.8px;
+            line-height: 1.12;
+            margin-bottom: 16px;
+        }
+
+        .section-sub {
+            font-size: 16px;
+            color: var(--muted);
+            max-width: 540px;
+            line-height: 1.6;
+            margin-bottom: 60px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+            gap: 18px;
+        }
+
+        .feature-card {
+            background: var(--glass2);
+            border: 1px solid var(--border2);
+            border-radius: var(--radius);
+            padding: 28px;
+            transition: transform .2s, border-color .2s, background .2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--blue-400), transparent);
+            opacity: 0;
+            transition: opacity .3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(59, 130, 246, 0.30);
+            background: rgba(59, 130, 246, 0.06);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: rgba(59, 130, 246, 0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 18px;
+        }
+
+        .feat-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .feat-desc {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        /* ── HOW IT WORKS ── */
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+        }
+
+        .step-card {
+            text-align: center;
+            padding: 32px 20px;
+            background: var(--glass2);
+            border: 1px solid var(--border2);
+            border-radius: var(--radius);
+            position: relative;
+        }
+
+        .step-num {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--blue-400);
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+        }
+
+        .step-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .step-desc {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        /* ── CTA SECTION ── */
+        .cta-section {
+            margin: 0 24px 100px;
+            max-width: 860px;
+            margin-left: auto;
+            margin-right: auto;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(59, 130, 246, 0.04));
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            border-radius: 24px;
+            padding: 60px 48px;
+            text-align: center;
+        }
+
+        .cta-title {
+            font-size: clamp(24px, 3vw, 36px);
+            font-weight: 700;
+            margin-bottom: 14px;
+            letter-spacing: -.5px;
+        }
+
+        .cta-sub {
+            font-size: 16px;
+            color: var(--muted);
+            margin-bottom: 36px;
+        }
+
+        /* ── FOOTER ── */
+        footer {
+            border-top: 1px solid var(--border2);
+            padding: 32px 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        footer p {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        footer nav a {
+            font-size: 13px;
+            color: var(--muted);
+            text-decoration: none;
+            margin-left: 24px;
+        }
+
+        footer nav a:hover {
+            color: var(--text);
+        }
+
+        /* ── Animations ── */
+        @keyframes fadeDown {
+            from {
+                opacity: 0;
+                transform: translateY(-18px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav>
+        <a class="nav-logo" href="/">GenZTrauma <span>Analyser</span> 🧠</a>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#how">How it works</a>
+            <a href="#about">About</a>
+            <a href="/login" class="nav-cta">Sign In</a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero" style="position:relative">
+        <div class="hero-orb"></div>
+        <div class="hero-badge">✨ Redefining Emotional Awareness</div>
+        <h1 class="hero-title">Understand Your Past,<br><span>Own Your Future.</span></h1>
+        <p class="hero-sub">GenZTrauma Analyser uses advanced AI to help you identify emotional patterns, trauma
+            responses, and growth cycles through professional daily check-ins.</p>
+        <div class="hero-btns">
+            <a href="/register_page" class="btn-primary">Start for free →</a>
+            <a href="#how" class="btn-ghost">See how it works</a>
+        </div>
+    </section>
+
+    <!-- STATS -->
+    <div class="stats-strip">
+        <div class="stat-item">
+            <div class="stat-num">21</div>
+            <div class="stat-lbl">Day tracking program</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num">5</div>
+            <div class="stat-lbl">Emotion categories analyzed</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num">100%</div>
+            <div class="stat-lbl">Private & secure</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num">AI</div>
+            <div class="stat-lbl">Powered by NLP</div>
+        </div>
+    </div>
+
+    <!-- FEATURES -->
+    <section class="section" id="features">
+        <div class="section-label">What you get</div>
+        <h2 class="section-title">Everything you need to<br>understand your mind</h2>
+        <p class="section-sub">Daily check-ins take under 3 minutes. Our AI does the rest.</p>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feat-icon">🧠</div>
+                <div class="feat-title">NLP Emotion Analysis</div>
+                <div class="feat-desc">Write freely in your own words. Our model detects your emotional state with
+                    clinical-grade accuracy.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feat-icon">📊</div>
+                <div class="feat-title">Progress Dashboard</div>
+                <div class="feat-desc">Interactive charts show your emotional journey across 21 days — see exactly how
+                    you're evolving.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feat-icon">🎯</div>
+                <div class="feat-title">Personalized Feedback</div>
+                <div class="feat-desc">Get tailored daily tips and messages based on your unique emotional profile — not
+                    generic advice.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feat-icon">🔒</div>
+                <div class="feat-title">Secure & Private</div>
+                <div class="feat-desc">Your responses are encrypted. Nobody sees your data — it's your private emotional
+                    journal.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feat-icon">⚡</div>
+                <div class="feat-title">Real-time Detection</div>
+                <div class="feat-desc">Results in seconds. No waiting, no consultation scheduling — instant emotional
+                    clarity.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feat-icon">📈</div>
+                <div class="feat-title">Trend Tracking</div>
+                <div class="feat-desc">Compare Day 1 to today. Watch your overthinking, trauma responses, and emotional
+                    resilience shift.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="section" id="how" style="padding-top:0">
+        <div class="section-label">Process</div>
+        <h2 class="section-title">How GenZTrauma Analyser works</h2>
+        <p class="section-sub">A simple daily ritual that builds real emotional intelligence over time.</p>
+
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-num">1</div>
+                <div class="step-title">Create your account</div>
+                <div class="step-desc">Register in under 30 seconds. No credit card, no subscriptions.</div>
+            </div>
+            <div class="step-card">
+                <div class="step-num">2</div>
+                <div class="step-title">Daily check-in</div>
+                <div class="step-desc">Write how you're feeling + answer a few targeted questions.</div>
+            </div>
+            <div class="step-card">
+                <div class="step-num">3</div>
+                <div class="step-title">AI analyzes your state</div>
+                <div class="step-desc">Our NLP model detects your emotions and severity level instantly.</div>
+            </div>
+            <div class="step-card">
+                <div class="step-num">4</div>
+                <div class="step-title">Get your insights</div>
+                <div class="step-desc">Receive personalized feedback, tips, and track your emotional arc.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="section" id="about" style="padding-top:0">
+        <div class="section-label">About</div>
+        <h2 class="section-title">Built for real mental wellness</h2>
+        <p class="section-sub">GenZTrauma Analyser was built to give people a private, non-judgmental space to
+            understand their
+            emotional health — using the same NLP technology used in clinical research, made simple and accessible for
+            everyone.</p>
+        <div class="features-grid" style="grid-template-columns: repeat(2,1fr)">
+            <div class="feature-card">
+                <div class="feat-icon">📧</div>
+                <div class="feat-title">Contact Support</div>
+                <div class="feat-desc">support@mindtrace.app<br>+91 98765 43210</div>
+            </div>
+            <div class="feature-card">
+                <div class="feat-icon">🛡️</div>
+                <div class="feat-title">Privacy First</div>
+                <div class="feat-desc">Your emotional data is never sold, shared, or used for advertising. Ever.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <div class="cta-section">
+        <div class="cta-title">Ready to understand yourself better?</div>
+        <p class="cta-sub">Start your 21-day emotional journey today. It's completely free.</p>
+        <a href="/register_page" class="btn-primary">Create your account →</a>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>© 2026 GenZTrauma Analyser. All rights reserved.</p>
+        <nav>
+            <a href="#features">Features</a>
+            <a href="#about">About</a>
+            <a href="/login">Login</a>
+        </nav>
+    </footer>
+
+</body>
+
+</html>

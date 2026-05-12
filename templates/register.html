@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join GenZTrauma Analyser</title>
+
+    <style>
+        :root {
+            --white: #ffffff;
+            --bg: #fdf2f8;
+            --primary: #db2777;
+            --primary-hover: #be185d;
+            --text: #111827;
+            --muted: #6b7280;
+            --border: rgba(219, 39, 119, 0.15);
+            --border2: rgba(219, 39, 119, 0.25);
+            --glass: rgba(255, 255, 255, 0.8);
+            --glass2: rgba(255, 255, 255, 0.5);
+            --input-bg: rgba(219, 39, 119, 0.05);
+            --input-border: rgba(219, 39, 119, 0.1);
+            --error: #ef4444;
+            --success: #10b981;
+            --radius: 14px;
+
+            --blue-400: var(--primary);
+            --blue-500: var(--primary-hover);
+        }
+
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 15% 10%, rgba(219, 39, 119, 0.1) 0%, transparent 55%),
+                radial-gradient(ellipse 60% 50% at 85% 85%, rgba(219, 39, 119, 0.05) 0%, transparent 55%),
+                linear-gradient(160deg, #ffffff 0%, #fef2f2 60%, #fdf2f8 100%);
+            z-index: -1;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 440px;
+            background: var(--glass2);
+            border: 1px solid var(--border2);
+            border-radius: 24px;
+            padding: 44px 40px;
+            backdrop-filter: blur(24px);
+            animation: fadeUp .5s ease;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-logo {
+            text-align: center;
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .card-logo span {
+            color: var(--blue-400);
+        }
+
+        .card-sub {
+            text-align: center;
+            font-size: 14px;
+            color: var(--muted);
+            margin-bottom: 32px;
+        }
+
+        /* ── Fields ── */
+        .field {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="email"] {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 14px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+
+        input:focus {
+            border-color: var(--blue-400);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        input.field-err {
+            border-color: var(--error);
+        }
+
+        input.field-ok {
+            border-color: var(--success);
+        }
+
+        .pw-toggle {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px;
+        }
+
+        .pw-toggle:hover {
+            color: var(--text);
+        }
+
+        /* ── Password strength ── */
+        .strength-bar {
+            display: flex;
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .strength-seg {
+            flex: 1;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.12);
+            transition: background .3s;
+        }
+
+        .strength-label {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 5px;
+        }
+
+        /* ── Password requirements ── */
+        .pw-reqs {
+            margin-top: 12px;
+            padding: 14px 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            border: 1px solid var(--border2);
+        }
+
+        .pw-reqs-title {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .req {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 5px;
+            transition: color .2s;
+        }
+
+        .req.met {
+            color: var(--success);
+        }
+
+        .req.unmet {
+            color: rgba(232, 237, 245, 0.4);
+        }
+
+        .req-icon {
+            font-size: 13px;
+            width: 16px;
+            text-align: center;
+        }
+
+        /* ── Field inline error ── */
+        .field-error {
+            font-size: 12px;
+            color: var(--error);
+            margin-top: 5px;
+            display: none;
+        }
+
+        /* ── Security question select ── */
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 14px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            outline: none;
+            transition: border-color .2s;
+            appearance: none;
+            cursor: pointer;
+        }
+
+        select:focus {
+            border-color: var(--blue-400);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        select option {
+            background: #ffffff;
+            color: var(--text);
+        }
+
+        /* ── Buttons ── */
+        .btn-primary {
+            width: 100%;
+            padding: 13px;
+            background: var(--blue-400);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: background .2s, transform .15s, box-shadow .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .btn-primary:hover {
+            background: var(--blue-500);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(219, 39, 119, .25);
+        }
+
+        .btn-primary:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .alert {
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 13px;
+            margin-top: 14px;
+            display: none;
+            align-items: flex-start;
+            gap: 10px;
+            line-height: 1.5;
+        }
+
+        .alert.error {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.25);
+            color: var(--error);
+        }
+
+        .alert.success {
+            background: rgba(52, 211, 153, 0.1);
+            border: 1px solid rgba(52, 211, 153, 0.25);
+            color: var(--success);
+        }
+
+        .alert.show {
+            display: flex;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 22px 0;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border2);
+        }
+
+        .login-link {
+            text-align: center;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .login-link a {
+            color: var(--blue-400);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* ── Terms ── */
+        .terms {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-top: 16px;
+            margin-bottom: 4px;
+        }
+
+        .terms input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            margin-top: 2px;
+            accent-color: var(--blue-400);
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .terms label {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.5;
+            cursor: pointer;
+        }
+
+        .terms a {
+            color: var(--blue-400);
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+        <div class="logo">🎗️</div>
+        <h2>GenZTrauma Analyser</h2>
+        <p>Join our 21-day emotional programme</p>
+
+        <!-- Username -->
+        <div class="field">
+            <label for="username">Username</label>
+            <input type="text" id="username" placeholder="Choose a username" autocomplete="username"
+                oninput="validateUsername(this.value)">
+            <div class="field-error" id="err-username"></div>
+        </div>
+
+        <!-- Email -->
+        <div class="field">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" placeholder="Enter your email" autocomplete="email"
+                oninput="validateEmail(this.value)">
+            <div class="field-error" id="err-email"></div>
+        </div>
+
+        <!-- Password -->
+        <div class="field">
+            <label for="password">Password</label>
+            <div class="input-wrap">
+                <input type="password" id="password" placeholder="Create a strong password"
+                    oninput="onPasswordInput(this.value)" autocomplete="new-password">
+                <button class="pw-toggle" type="button" onclick="togglePw('password','eye1')"><span
+                        id="eye1">👁️</span></button>
+            </div>
+
+            <!-- Strength bar -->
+            <div class="strength-bar">
+                <div class="strength-seg" id="str1"></div>
+                <div class="strength-seg" id="str2"></div>
+                <div class="strength-seg" id="str3"></div>
+                <div class="strength-seg" id="str4"></div>
+            </div>
+            <div class="strength-label" id="strength-label">Choose a password</div>
+
+            <!-- Requirements -->
+            <div class="pw-reqs" id="pw-reqs" style="display:none">
+                <div class="pw-reqs-title">Password must include:</div>
+                <div class="req unmet" id="req-len"><span class="req-icon">○</span> At least 8 characters</div>
+                <div class="req unmet" id="req-up"><span class="req-icon">○</span> One uppercase letter (A–Z)</div>
+                <div class="req unmet" id="req-num"><span class="req-icon">○</span> One number (0–9)</div>
+                <div class="req unmet" id="req-sym"><span class="req-icon">○</span> One special character (!@#$%...)
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="field">
+            <label for="confirm">Confirm Password</label>
+            <div class="input-wrap">
+                <input type="password" id="confirm" placeholder="Re-enter your password" oninput="validateConfirm()"
+                    autocomplete="new-password">
+                <button class="pw-toggle" type="button" onclick="togglePw('confirm','eye2')"><span
+                        id="eye2">👁️</span></button>
+            </div>
+            <div class="field-error" id="err-confirm"></div>
+        </div>
+
+        <!-- Security question (for forgot password) -->
+        <div class="field">
+            <label for="sec-q">Security Question <span style="color:var(--muted);font-weight:400">(for password
+                    recovery)</span></label>
+            <select id="sec-q">
+                <option value="">Select a question...</option>
+                <option value="What is the name of your first pet?">What is the name of your first pet?</option>
+                <option value="What city were you born in?">What city were you born in?</option>
+                <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                <option value="What was the name of your first school?">What was the name of your first school?</option>
+                <option value="What is your favourite childhood book?">What is your favourite childhood book?</option>
+                <option value="What is the name of the street you grew up on?">What is the name of the street you grew
+                    up on?</option>
+            </select>
+            <div class="field-error" id="err-secq"></div>
+        </div>
+
+        <!-- Security answer -->
+        <div class="field">
+            <label for="sec-a">Your Answer</label>
+            <input type="text" id="sec-a" placeholder="Your answer (case-insensitive)">
+            <div class="field-error" id="err-seca"></div>
+        </div>
+
+        <!-- Terms -->
+        <div class="terms">
+            <input type="checkbox" id="terms">
+            <label for="terms">I agree to the <a href="/terms" target="_blank">Terms of Service</a> and acknowledge that my data is processed
+                privately.</label>
+        </div>
+
+        <!-- Submit -->
+        <button class="btn-primary" id="registerBtn" onclick="register()">
+            <span class="spinner" id="regSpinner"></span>
+            <span id="regBtnText">Create Account</span>
+        </button>
+
+        <div class="alert error" id="regAlert"></div>
+        <div class="alert success" id="regSuccess"></div>
+
+        <div class="divider">or</div>
+
+        <div class="login-link">Already have an account? <a href="/login">Sign in →</a></div>
+    </div>
+
+    <script>
+        /* ─── Helpers ─────────────────────────────────────── */
+        function togglePw(inputId, eyeId) {
+            const inp = document.getElementById(inputId);
+            inp.type = (inp.type === 'password') ? 'text' : 'password';
+            document.getElementById(eyeId).textContent = (inp.type === 'password') ? '👁️' : '🙈';
+        }
+
+        function showAlert(id, msg, type = 'error') {
+            const el = document.getElementById(id);
+            el.textContent = msg;
+            el.className = 'alert ' + type + ' show';
+        }
+
+        function hideAlert(id) { document.getElementById(id).className = 'alert'; }
+
+        /* ─── Email validation ──────────────────────────── */
+        function validateEmail(val) {
+            const err = document.getElementById('err-email');
+            const inp = document.getElementById('email');
+            if (!val) {
+                err.textContent = 'Email is required.';
+                err.style.display = 'block';
+                inp.classList.add('field-err');
+                return false;
+            }
+            if (!/[^@]+@[^@]+\.[^@]+/.test(val)) {
+                err.textContent = 'Please enter a valid email address.';
+                err.style.display = 'block';
+                inp.classList.add('field-err');
+                return false;
+            }
+            err.style.display = 'none';
+            inp.classList.remove('field-err');
+            inp.classList.add('field-ok');
+            return true;
+        }
+
+        /* ─── Username validation ─────────────────────────── */
+        function validateUsername(val) {
+            const err = document.getElementById('err-username');
+            const inp = document.getElementById('username');
+            if (!val) {
+                err.textContent = 'Username is required.';
+                err.style.display = 'block';
+                inp.classList.add('field-err');
+                inp.classList.remove('field-ok');
+                return false;
+            }
+            if (val.length < 3) {
+                err.textContent = 'Username must be at least 3 characters.';
+                err.style.display = 'block';
+                inp.classList.add('field-err');
+                inp.classList.remove('field-ok');
+                return false;
+            }
+            if (!/^[a-zA-Z0-9_]+$/.test(val)) {
+                err.textContent = 'Only letters, numbers, and underscores allowed.';
+                err.style.display = 'block';
+                inp.classList.add('field-err');
+                inp.classList.remove('field-ok');
+                return false;
+            }
+            err.style.display = 'none';
+            inp.classList.remove('field-err');
+            inp.classList.add('field-ok');
+            return true;
+        }
+
+        /* ─── Password validation & strength ─────────────── */
+        const RULES = [
+            { id: 'req-len', test: pw => pw.length >= 8 },
+            { id: 'req-up', test: pw => /[A-Z]/.test(pw) },
+            { id: 'req-num', test: pw => /[0-9]/.test(pw) },
+            { id: 'req-sym', test: pw => /[^A-Za-z0-9]/.test(pw) },
+        ];
+
+        function onPasswordInput(pw) {
+            const reqs = document.getElementById('pw-reqs');
+            reqs.style.display = pw.length > 0 ? 'block' : 'none';
+
+            let score = 0;
+            RULES.forEach(r => {
+                const met = r.test(pw);
+                if (met) score++;
+                const el = document.getElementById(r.id);
+                el.className = 'req ' + (met ? 'met' : 'unmet');
+                el.querySelector('.req-icon').textContent = met ? '✓' : '○';
+            });
+
+            const colors = ['#f87171', '#fb923c', '#facc15', '#34d399'];
+            const labels = ['Too weak', 'Fair', 'Good', 'Strong 🔒'];
+            ['str1', 'str2', 'str3', 'str4'].forEach((id, i) => {
+                document.getElementById(id).style.background =
+                    i < score ? colors[score - 1] : 'rgba(255,255,255,0.12)';
+            });
+
+            const slbl = document.getElementById('strength-label');
+            slbl.textContent = pw.length === 0 ? 'Choose a password' : labels[score - 1] || 'Too weak';
+            slbl.style.color = pw.length === 0 ? 'var(--muted)' : (colors[score - 1] || colors[0]);
+
+            validateConfirm();
+        }
+
+        function validatePassword(pw) {
+            const errs = [];
+            RULES.forEach(r => { if (!r.test(pw)) errs.push(true); });
+            return errs.length === 0;
+        }
+
+        function validateConfirm() {
+            const pw = document.getElementById('password').value;
+            const cp = document.getElementById('confirm').value;
+            const err = document.getElementById('err-confirm');
+            const inp = document.getElementById('confirm');
+            if (cp && pw !== cp) {
+                err.textContent = 'Passwords do not match.';
+                err.style.display = 'block';
+                inp.classList.add('field-err');
+                inp.classList.remove('field-ok');
+                return false;
+            }
+            if (cp && pw === cp) {
+                err.style.display = 'none';
+                inp.classList.remove('field-err');
+                inp.classList.add('field-ok');
+            }
+            return true;
+        }
+
+        /* ─── Register ────────────────────────────────────── */
+        async function register() {
+            hideAlert('regAlert');
+            hideAlert('regSuccess');
+
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirm = document.getElementById('confirm').value;
+            const secQ = document.getElementById('sec-q').value;
+            const secA = document.getElementById('sec-a').value.trim();
+            const terms = document.getElementById('terms').checked;
+
+            // Client-side validation
+            let valid = true;
+
+            if (!validateUsername(username)) valid = false;
+            if (!validateEmail(email)) valid = false;
+
+            if (!validatePassword(password)) {
+                showAlert('regAlert', 'Your password does not meet the strength requirements above.');
+                valid = false;
+            }
+
+            if (password !== confirm) {
+                document.getElementById('err-confirm').textContent = 'Passwords do not match.';
+                document.getElementById('err-confirm').style.display = 'block';
+                valid = false;
+            }
+
+            if (!secQ) {
+                document.getElementById('err-secq').textContent = 'Please select a security question.';
+                document.getElementById('err-secq').style.display = 'block';
+                valid = false;
+            } else {
+                document.getElementById('err-secq').style.display = 'none';
+            }
+
+            if (!secA) {
+                document.getElementById('err-seca').textContent = 'Please provide an answer to your security question.';
+                document.getElementById('err-seca').style.display = 'block';
+                valid = false;
+            } else {
+                document.getElementById('err-seca').style.display = 'none';
+            }
+
+            if (!terms) {
+                showAlert('regAlert', 'Please accept the terms to continue.');
+                valid = false;
+            }
+
+            if (!valid) return;
+
+            // Send to server
+            const btn = document.getElementById('registerBtn');
+            const sp = document.getElementById('regSpinner');
+            const tx = document.getElementById('regBtnText');
+            btn.disabled = true;
+            sp.style.display = 'block';
+            tx.textContent = 'Creating account...';
+
+            try {
+                const res = await fetch('/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password, security_question: secQ, security_answer: secA })
+                });
+                const data = await res.json();
+
+                if (data.message) {
+                    showAlert('regSuccess', 'Account created! Redirecting to sign in...', 'success');
+                    setTimeout(() => { window.location.href = '/login'; }, 1500);
+                } else {
+                    showAlert('regAlert', data.error || 'Registration failed. Please try again.');
+                    btn.disabled = false;
+                    sp.style.display = 'none';
+                    tx.textContent = 'Create Account';
+                }
+            } catch {
+                showAlert('regAlert', 'Network error. Please try again.');
+                btn.disabled = false;
+                sp.style.display = 'none';
+                tx.textContent = 'Create Account';
+            }
+        }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Enter') register(); });
+    </script>
+
+</body>
+
+</html>

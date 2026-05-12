@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Emotional Check-in — GenZTrauma Analyser{% endblock %}
+{% block page_title %}Daily Check-in{% endblock %}
+
+{% block content %}
+<div id="checkin-container" style="max-width: 800px; margin: 0 auto;">
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" style="display:none; text-align:center; padding:60px;">
+        <div
+            style="width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite; margin:0 auto 20px;">
+        </div>
+        <p style="color:var(--muted); font-weight:600;">Analyzing your inputs...</p>
+    </div>
+
+    <!-- Check-in Form -->
+    <div id="checkin-form">
+        <div class="card" style="margin-bottom:24px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                <h3 style="font-size:16px; font-weight:700;">Morning Journal</h3>
+                <span id="char-count" style="font-size:11px; color:var(--muted);">0 / 500</span>
+            </div>
+            <textarea id="journal-text"
+                placeholder="How are you feeling today? Any specific triggers or positive moments?"
+                style="width:100%; height:120px; padding:16px; border-radius:12px; border:1px solid var(--border); background:var(--bg); font-family:inherit; font-size:14px; outline:none; resize:none; transition:all 0.2s;"></textarea>
+        </div>
+
+        <div id="questions-list">
+            <!-- Questions will be injected here -->
+        </div>
+
+        <button id="submit-btn" onclick="submitCheckin()"
+            style="width:100%; padding:16px; background:var(--primary); color:white; border:none; border-radius:12px; font-weight:800; font-size:15px; cursor:pointer; margin-top:12px; transition:all 0.2s; box-shadow:0 4px 12px rgba(219,39,119,0.2);">Submit
+            Daily Check-in</button>
+    </div>
+
+    <!-- Done Today Status -->
+    <div id="done-today" class="card" style="display:none; text-align:center; padding:60px 24px;">
+        <span style="font-size:48px;">✅</span>
+        <h2 style="font-size:20px; font-weight:800; margin-top:20px;">You're all caught up!</h2>
+        <p style="color:var(--muted); margin-top:8px;">You've already completed your check-in for today. Come back
+            tomorrow!</p>
+        <a href="/dashboard" class="card"
+            style="display:inline-block; margin-top:24px; padding:12px 24px; background:var(--primary); color:white; text-decoration:none; font-weight:700; border-radius:10px; border:none;">Return
+            to Dashboard</a>
+    </div>
+</div>
+
+<style>
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .q-card {
+        margin-bottom: 12px;
+    }
+
+    textarea:focus {
+        border-color: var(--primary) !important;
+        background: white !important;
+        box-shadow: 0 0 0 4px rgba(219, 39, 119, 0.05);
+    }
+
+    input[type=range] {
+        width: 100%;
+        accent-color: var(--primary);
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const user_id = localStorage.getItem('user_id');
+    let questions = [];
+
+    async function initCheckin() {
+        try {
+            const statusRes = await fetch(`/checkin_status/${user_id}`);
+            const status = await statusRes.json();
+
+            if (status.checked_in_today) {
+                document.getElementById('checkin-form').style.display = 'none';
+                document.getElementById('done-today').style.display = 'block';
+                return;
+            }
+
+            const qRes = await fetch('/questions');
+            questions = await qRes.json();
+            renderQuestions();
+
+            const tx = document.getElementById('journal-text');
+            tx.addEventListener('input', () => {
+                document.getElementById('char-count').textContent = `${tx.value.length} / 500`;
+            });
+
+        } catch (e) { console.error(e); }
+    }
+
+    function renderQuestions() {
+        const container = document.getElementById('questions-list');
+        container.innerHTML = '';
+        questions.forEach(q => {
+            const div = document.createElement('div');
+            div.className = 'card q-card';
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                    <p style="font-size:14px; font-weight:600; flex:1;">${q.text}</p>
+                    <span id="val-${q.id}" style="font-size:14px; font-weight:800; color:var(--primary); margin-left:12px; background:rgba(219,39,119,0.08); padding:2px 8px; border-radius:6px;">5</span>
+                </div>
+                <input type="range" min="1" max="10" value="5" oninput="document.getElementById('val-${q.id}').textContent = this.value" id="q-input-${q.id}">
+                <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:10px; color:var(--muted); font-weight:700;">
+                    <span>NOT AT ALL</span>
+                    <span>CONSTANTLY</span>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    async function submitCheckin() {
+        const text = document.getElementById('journal-text').value;
+        const btn = document.getElementById('submit-btn');
+        const loader = document.getElementById('loading-overlay');
+        const form = document.getElementById('checkin-form');
+
+        btn.disabled = true;
+        form.style.opacity = '0.5';
+        loader.style.display = 'block';
+
+        try {
+            const dayRes = await fetch(`/current_day/${user_id}`);
+            const { day } = await dayRes.json();
+
+            // Submit Numerical Answers
+            const answers = questions.map(q => ({
+                question_id: q.id,
+                answer: parseInt(document.getElementById(`q-input-${q.id}`).value)
+            }));
+
+            await fetch('/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id, answers, day })
+            });
+
+            // Analyze Text
+            if (text.trim()) {
+                await fetch('/analyze_text', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id, text, day })
+                });
+            }
+
+            window.location.href = '/result';
+
+        } catch (e) {
+            console.error(e);
+            alert("Submission failed. Please try again.");
+            btn.disabled = false;
+            form.style.opacity = '1';
+            loader.style.display = 'none';
+        }
+    }
+
+    initCheckin();
+</script>
+{% endblock %}

@@ -1,0 +1,8 @@
+flask
+flask-mail
+flask-apscheduler
+psycopg2-binary
+bcrypt
+transformers
+torch
+gunicorn
