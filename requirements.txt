@@ -3,6 +3,7 @@ flask-mail
 flask-apscheduler
 psycopg2-binary
 bcrypt
-transformers
-torch
+transformers==4.40.2
+torch==2.2.2
 gunicorn
+ 
